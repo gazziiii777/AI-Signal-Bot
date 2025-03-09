@@ -1,0 +1,28 @@
+[
+    {
+        "domain": ".grok.com",
+        "expirationDate": 1757096172.5497,
+        "hostOnly": false,
+        "httpOnly": true,
+        "name": "sso",
+        "path": "/",
+        "sameSite": "lax",
+        "secure": true,
+        "session": false,
+        "storeId": null,
+        "value": "eyJhbGciOiJIUzI1NiJ9.eyJzZXNzaW9uX2lkIjoiMjdjNDgwYTItMTk5ZS00ZjRhLTgxNTMtNjk5MTIwNjg2Nzc0In0.NR2mC_kYgATc0L8uI2fh3VeXj1FYEVpvoJ-8ZBTFb8c"
+    },
+    {
+        "domain": ".grok.com",
+        "expirationDate": 1757096172.54964,
+        "hostOnly": false,
+        "httpOnly": true,
+        "name": "sso-rw",
+        "path": "/",
+        "sameSite": "strict",
+        "secure": true,
+        "session": false,
+        "storeId": null,
+        "value": "eyJhbGciOiJIUzI1NiJ9.eyJzZXNzaW9uX2lkIjoiMjdjNDgwYTItMTk5ZS00ZjRhLTgxNTMtNjk5MTIwNjg2Nzc0In0.NR2mC_kYgATc0L8uI2fh3VeXj1FYEVpvoJ-8ZBTFb8c"
+    }
+]
