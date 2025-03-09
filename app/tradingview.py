@@ -48,7 +48,7 @@ class TradingViewButtonClicker:
         self.playwright = await async_playwright().start()
         self.browser = await self.playwright.chromium.launch_persistent_context(
             user_data_dir=self.user_data_dir,
-            headless=False,
+            headless=True,
             args=["--no-sandbox", "--disable-dev-shm-usage",
                   "--disable-extensions"],
             downloads_path=self.downloads_dir
@@ -60,7 +60,7 @@ class TradingViewButtonClicker:
         cookies = self._load_cookies()
 
         # Открываем две вкладки
-        for _ in range(2):
+        for _ in range(3):
             page = await self.browser.new_page()
             await page.context.add_cookies(cookies)
             await page.goto("https://ru.tradingview.com/chart/dBNU59NG/", wait_until="domcontentloaded")
@@ -107,6 +107,25 @@ class TradingViewButtonClicker:
                 await button.click()
                 return
 
+    async def click_4_hour_button(self, page):
+        """Нажимает на одну из кнопок '4 часа', если она видима и доступна в указанной вкладке."""
+        button_selector = "button[aria-label='4 часа'][aria-checked='false'][role='radio']"
+        buttons = await page.query_selector_all(button_selector)
+        for button in buttons:
+            if await button.is_visible() and await button.is_enabled():
+                await button.click()
+                return
+        
+    async def click_1_day_button(self, page):
+        """Нажимает на одну из кнопок '1 день', если она видима и доступна в указанной вкладке."""
+        button_selector = "button[aria-label='1 день'][aria-checked='false'][role='radio']"
+        buttons = await page.query_selector_all(button_selector)
+        for button in buttons:
+            if await button.is_visible() and await button.is_enabled():
+                await button.click()
+                return
+
+
     async def click_download(self, page, file_name):
         """Нажимает на одну из кнопок для загрузки, затем на несколько спанов с текстами 'Экспорт данных графика…' и других в указанной вкладке."""
         button_selector = "button[data-tooltip='Управление графиками'][aria-label='Управление графиками'][aria-haspopup='menu']"
@@ -122,6 +141,7 @@ class TradingViewButtonClicker:
                     if "Экспорт данных графика…" in await span.inner_text():
                         if await span.is_visible() and await span.is_enabled():
                             await span.click()
+                            await asyncio.sleep(2)
                             break
 
                 spans = await page.query_selector_all(span_selector)
@@ -129,6 +149,7 @@ class TradingViewButtonClicker:
                     if "Временной шаг UNIX" in await span.inner_text():
                         if await span.is_visible() and await span.is_enabled():
                             await span.click()
+                            await asyncio.sleep(2)
                             break
 
                 spans = await page.query_selector_all(span_selector)
@@ -136,6 +157,7 @@ class TradingViewButtonClicker:
                     if "Время в формате ISO" in await span.inner_text():
                         if await span.is_visible() and await span.is_enabled():
                             await span.click()
+                            await asyncio.sleep(2)
                             break
 
                 spans = await page.query_selector_all(span_selector)
@@ -152,18 +174,40 @@ class TradingViewButtonClicker:
                                 logging.info(
                                     f"Файл был загружен и сохранен как '{file_name}'")
                             except Exception as e:
-                                logging.error(f"Ошибка при загрузке файла: {e}")
+                                logging.error(
+                                    f"Ошибка при загрузке файла: {e}")
                             break
 
-    async def perform_actions_in_tab(self, tab_index):
+    async def perform_actions_in_tab_15_min(self, tab_index):
         """Выполняет действия в выбранной вкладке по индексу."""
         if tab_index == 0:
             page = self.pages[tab_index]
             await self.click_15_min_button(page)
-            await self.click_download(page, '15.csv')
+            await self.click_download(page, '15_min.csv')
         elif tab_index == 1:
             page = self.pages[tab_index]
             await self.click_1_hour_button(page)
-            await self.click_download(page, '1.csv')
+            await self.click_download(page, '1_hour.csv')
+        elif tab_index == 2:
+            page = self.pages[tab_index]
+            await self.click_4_hour_button(page)
+            await self.click_download(page, '4_hour.csv')
+        else:
+            logging.error(f"Вкладка с индексом {tab_index} не существует.")
+        
+    async def perform_actions_in_tab_1_hour(self, tab_index):
+        """Выполняет действия в выбранной вкладке по индексу."""
+        if tab_index == 0:
+            page = self.pages[tab_index]
+            await self.click_1_hour_button(page)
+            await self.click_download(page, '1_hour.csv')
+        elif tab_index == 1:
+            page = self.pages[tab_index]
+            await self.click_4_hour_button(page)
+            await self.click_download(page, '4_hour.csv')
+        elif tab_index == 2:
+            page = self.pages[tab_index]
+            await self.click_1_day_button(page)
+            await self.click_download(page, '1_day.csv')
         else:
             logging.error(f"Вкладка с индексом {tab_index} не существует.")
