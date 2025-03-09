@@ -1,4 +1,4 @@
-test.py
+
 .venv/
 **/__pycache__/
 app/cookies/tradingview.json
