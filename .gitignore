@@ -3,3 +3,4 @@ test.py
 **/__pycache__/
 app/cookies/tradingview.json
 config.py
+app/downloads/*
