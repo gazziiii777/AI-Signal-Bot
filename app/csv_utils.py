@@ -1,4 +1,7 @@
-def csvs_to_text(csv_file_names, downloads_dir):
+from pathlib import Path
+
+
+def csvs_to_text(csv_file_names, downloads_dir, max_row):
     """
     Функция для преобразования CSV-файлов в текстовый формат.
     :param csv_file_names: Список имен CSV-файлов.
@@ -18,7 +21,7 @@ def csvs_to_text(csv_file_names, downloads_dir):
             lines = file.readlines()  # Читаем все оставшиеся строки
 
         # Получаем последние 100 строк (или меньше, если файл маленький)
-        last_100_lines = lines[-300:] if len(lines) >= 300 else lines
+        last_100_lines = lines[-max_row:] if len(lines) >= max_row else lines
 
         # Оборачиваем первую строку и последние 100 строк в фигурные кавычки {}
         wrapped_lines = [f"{{{first_line.strip()}}}"] + \
@@ -39,3 +42,47 @@ def csvs_to_text(csv_file_names, downloads_dir):
         f.write(result_text)
 
     return result_text
+
+
+def get_last_high_low(file_name, downloads_dir):
+    """
+    Функция для получения значений high и low из последней строки CSV-файла.
+    :param downloads_dir: Путь к директории с файлом.
+    :param file_name: Имя CSV-файла.
+    :return: Кортеж (high, low) или None, если данные недоступны.
+    """
+    file_path = downloads_dir / file_name  # Формируем полный путь
+
+    # Проверяем, существует ли файл и не является ли он директорией
+    if not file_path.exists():
+        print(f"Файл {file_name} не найден в директории {downloads_dir}.")
+        return None
+    if file_path.is_dir():  # Проверяем, что это не директория
+        print(f"Указанный путь {file_path} является директорией, а не файлом.")
+        return None
+
+    # Читаем последнюю строку из файла
+    with open(file_path, mode="r", encoding="utf-8") as file:
+        lines = file.readlines()  # Читаем все строки
+        if not lines:  # Если файл пустой
+            print(f"Файл {file_name} пуст.")
+            return None
+
+        # Получаем заголовки (первую строку)
+        headers = lines[0].strip().split(",")
+        if 'high' not in headers or 'low' not in headers:  # Проверяем наличие столбцов
+            print(f"Файл {file_name} не содержит столбцов high и low.")
+            return None
+
+        # Получаем последнюю строку
+        last_line = lines[-1].strip().split(",")
+
+        # Находим индексы столбцов high и low
+        high_index = headers.index('high')
+        low_index = headers.index('low')
+
+        # Извлекаем значения high и low
+        high_value = last_line[high_index]
+        low_value = last_line[low_index]
+
+    return high_value, low_value
