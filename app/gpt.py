@@ -3,7 +3,7 @@ import pandas as pd
 from pathlib import Path
 
 
-class CSVAnalyzer:
+class CSVAnalyzerGPT:
     def __init__(self, api_key):
         self.client = openai.OpenAI(api_key=api_key)
         # Фиксированная директория

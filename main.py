@@ -3,7 +3,7 @@ from aiogram import Bot, Dispatcher
 from datetime import datetime, timedelta
 import pytz  # Для работы с временными зонами
 from app.tradingview import TradingViewButtonClicker
-from app.gpt import CSVAnalyzer
+from app.gpt import CSVAnalyzerGPT
 import prompts
 import logging
 import re  # Импортируем модуль для работы с регулярными выражениями
@@ -88,7 +88,7 @@ async def run_every_hour():
 async def signal_and_send_message(file_names, prompt, model_name, chanel_id):
     """Третья функция, которая выполняется после первой или второй."""
     logging.info("Запуск третьей функции...")
-    analyzer = CSVAnalyzer(api_key=os.getenv("API_KEY"))
+    analyzer = CSVAnalyzerGPT(api_key=os.getenv("API_KEY"))
     answer = analyzer.ask_gpt_about_csvs(file_names, prompt, model_name)
     print(answer)
     # Извлекаем текст, заключённый в {}
