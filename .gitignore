@@ -1,6 +1,11 @@
 app/cookies/grok.json
 .venv/
+venv/
+test.py
 **/__pycache__/
 app/cookies/tradingview.json
 config.py
 app/downloads/*
+app/data/*
+.env
+csv_output.txt
