@@ -95,6 +95,7 @@ class TradingViewButtonClicker:
         buttons = await page.query_selector_all(button_selector)
         for button in buttons:
             if await button.is_visible() and await button.is_enabled():
+                await asyncio.sleep(2)
                 await button.click()
                 return
 
@@ -115,7 +116,7 @@ class TradingViewButtonClicker:
             if await button.is_visible() and await button.is_enabled():
                 await button.click()
                 return
-        
+
     async def click_1_day_button(self, page):
         """Нажимает на одну из кнопок '1 день', если она видима и доступна в указанной вкладке."""
         button_selector = "button[aria-label='1 день'][aria-checked='false'][role='radio']"
@@ -124,7 +125,6 @@ class TradingViewButtonClicker:
             if await button.is_visible() and await button.is_enabled():
                 await button.click()
                 return
-
 
     async def click_download(self, page, file_name):
         """Нажимает на одну из кнопок для загрузки, затем на несколько спанов с текстами 'Экспорт данных графика…' и других в указанной вкладке."""
@@ -183,31 +183,31 @@ class TradingViewButtonClicker:
         if tab_index == 0:
             page = self.pages[tab_index]
             await self.click_15_min_button(page)
-            await self.click_download(page, '15_min.csv')
+            await self.click_download(page, 'M15.csv')
         elif tab_index == 1:
             page = self.pages[tab_index]
             await self.click_1_hour_button(page)
-            await self.click_download(page, '1_hour.csv')
+            await self.click_download(page, 'H1.csv')
         elif tab_index == 2:
             page = self.pages[tab_index]
             await self.click_4_hour_button(page)
-            await self.click_download(page, '4_hour.csv')
+            await self.click_download(page, 'H4.csv')
         else:
             logging.error(f"Вкладка с индексом {tab_index} не существует.")
-        
+
     async def perform_actions_in_tab_1_hour(self, tab_index):
         """Выполняет действия в выбранной вкладке по индексу."""
         if tab_index == 0:
             page = self.pages[tab_index]
             await self.click_1_hour_button(page)
-            await self.click_download(page, '1_hour.csv')
+            await self.click_download(page, 'H1.csv')
         elif tab_index == 1:
             page = self.pages[tab_index]
             await self.click_4_hour_button(page)
-            await self.click_download(page, '4_hour.csv')
+            await self.click_download(page, 'H4.csv')
         elif tab_index == 2:
             page = self.pages[tab_index]
             await self.click_1_day_button(page)
-            await self.click_download(page, '1_day.csv')
+            await self.click_download(page, 'D1.csv')
         else:
             logging.error(f"Вкладка с индексом {tab_index} не существует.")
