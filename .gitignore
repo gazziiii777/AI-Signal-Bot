@@ -9,3 +9,4 @@ app/downloads/*
 app/data/*
 .env
 csv_output.txt
+app/db/signals_history.db
