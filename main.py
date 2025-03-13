@@ -31,7 +31,8 @@ async def run_every_15_minutes():
     try:
         logging.info("Запуск задач каждые 15 минут...")
         button_clicker = TradingViewButtonClicker(
-            os.getenv("USER_DATA_DIR"), os.getenv("DOWNLOADS_DIR"), os.getenv("COOKIES_FILE")
+            os.getenv("USER_DATA_DIR"), os.getenv(
+                "DOWNLOADS_DIR"), os.getenv("COOKIES_FILE")
         )
 
         await button_clicker.open_browser()
@@ -61,7 +62,8 @@ async def run_every_hour():
     try:
         logging.info("Запуск задач каждый час...")
         button_clicker = TradingViewButtonClicker(
-            os.getenv("USER_DATA_DIR"), os.getenv("DOWNLOADS_DIR"), os.getenv("COOKIES_FILE")
+            os.getenv("USER_DATA_DIR"), os.getenv(
+                "DOWNLOADS_DIR"), os.getenv("COOKIES_FILE")
         )
 
         await button_clicker.open_browser()
