@@ -94,6 +94,19 @@ async def run_every_hour():
             logging.info("Браузер закрыт после выгрузки задач каждый час.")
 
 
+def pnl_update(first_prise, second_prise, db_manager, model_name, file_name, pnl_status):
+    text_to_send = ''
+    pnl = ((first_prise - second_prise) / second_prise) * 100
+    total_pnl = db_manager.get_total_pnl("model_"+model_name)
+    # Если pnl_status равно False, делаем pnl отрицательным
+    if not pnl_status:
+        text_to_send = f'Сделка закрыта по стоп-лоссу. PNL {pnl}%\nКумулятивный PNL {file_name} {total_pnl}%'
+        pnl = -abs(pnl)
+
+    db_manager.update_status_and_pnl("model_"+model_name, file_name, pnl)
+    return text_to_send
+
+
 async def signal_and_send_message(file_names, prompt, model_name, chanel_id, max_row):
     """Третья функция, которая выполняется после первой или второй."""
     db_manager = DatabaseManager(DB_PATH)
@@ -130,30 +143,22 @@ async def signal_and_send_message(file_names, prompt, model_name, chanel_id, max
             file_names[0], Path("/root/scripts/AI-Signal-Bot/app/downloads"))
         if position_open['signal'] == "шорт" or position_open['signal'] == "short":
             if position_open['TP'] > low_value:
-                pnl = (
-                    (position_open['open'] - position_open['TP']) / position_open['TP']) * 100
-                db_manager.update_status_and_pnl(
-                    "model_"+model_name, file_names[0].replace('.csv', ''), pnl)
-                await bot.send_message(chat_id=chanel_id, text=pnl)
+                text_to_send = pnl_update(position_open['open'], position_open['TP'],
+                                          db_manager, model_name, file_names[0].replace('.csv', ''), True)
+                await bot.send_message(chat_id=chanel_id, text=text_to_send)
             if position_open['SL'] < high_value:
-                pnl = -(
-                    (position_open['SL'] - position_open['open']) / position_open['open']) * 100
-                db_manager.update_status_and_pnl(
-                    "model_"+model_name, file_names[0].replace('.csv', ''), pnl)
-                await bot.send_message(chat_id=chanel_id, text=pnl)
+                text_to_send = pnl_update(position_open['open'], position_open['TP'],
+                                          db_manager, model_name, file_names[0].replace('.csv', ''), False)
+                await bot.send_message(chat_id=chanel_id, text=text_to_send)
         else:
             if position_open['TP'] < high_value:
-                pnl = (
-                    (position_open['TP'] - position_open['open']) / position_open['open']) * 100
-                db_manager.update_status_and_pnl(
-                    "model_"+model_name, file_names[0].replace('.csv', ''), pnl)
-                await bot.send_message(chat_id=chanel_id, text=pnl)
+                text_to_send = pnl_update(position_open['open'], position_open['TP'],
+                                          db_manager, model_name, file_names[0].replace('.csv', ''), True)
+                await bot.send_message(chat_id=chanel_id, text=text_to_send)
             if position_open['SL'] > low_value:
-                pnl = -(
-                    (position_open['open'] - position_open['SL']) / position_open['SL']) * 100
-                db_manager.update_status_and_pnl(
-                    "model_"+model_name, file_names[0].replace('.csv', ''), pnl)
-                await bot.send_message(chat_id=chanel_id, text=pnl)
+                text_to_send = pnl_update(position_open['open'], position_open['TP'],
+                                          db_manager, model_name, file_names[0].replace('.csv', ''), False)
+                await bot.send_message(chat_id=chanel_id, text=text_to_send)
 
     logging.info("Третья функция завершена.")
 
