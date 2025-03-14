@@ -5,6 +5,7 @@ test.py
 **/__pycache__/
 app/cookies/tradingview.json
 config.py
+db_config.py
 app/downloads/*
 app/data/*
 .env
