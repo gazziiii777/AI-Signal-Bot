@@ -9,6 +9,13 @@ import logging
 import re  # Импортируем модуль для работы с регулярными выражениями
 from dotenv import load_dotenv
 import os
+import config
+from app.text_utils import extract_signal_info
+from db_config import DB_PATH, TABLES  # Импортируем константы
+from app.db.database_manager import DatabaseManager
+from app.csv_utils import get_last_high_low
+from pathlib import Path
+
 
 # Загрузка переменных окружения из .env файла
 load_dotenv()
@@ -31,8 +38,8 @@ async def run_every_15_minutes():
     try:
         logging.info("Запуск задач каждые 15 минут...")
         button_clicker = TradingViewButtonClicker(
-            os.getenv("USER_DATA_DIR"), os.getenv(
-                "DOWNLOADS_DIR"), os.getenv("COOKIES_FILE")
+            config.USER_DATA_DIR,
+            config.DOWNLOADS_DIR, config.COOKIES_FILE
         )
 
         await button_clicker.open_browser()
@@ -62,8 +69,8 @@ async def run_every_hour():
     try:
         logging.info("Запуск задач каждый час...")
         button_clicker = TradingViewButtonClicker(
-            os.getenv("USER_DATA_DIR"), os.getenv(
-                "DOWNLOADS_DIR"), os.getenv("COOKIES_FILE")
+            config.USER_DATA_DIR,
+            config.DOWNLOADS_DIR, config.COOKIES_FILE
         )
 
         await button_clicker.open_browser()
@@ -87,24 +94,67 @@ async def run_every_hour():
             logging.info("Браузер закрыт после выгрузки задач каждый час.")
 
 
-async def signal_and_send_message(file_names, prompt, model_name, chanel_id):
+async def signal_and_send_message(file_names, prompt, model_name, chanel_id, max_row):
     """Третья функция, которая выполняется после первой или второй."""
-    logging.info("Запуск третьей функции...")
-    analyzer = CSVAnalyzerGPT(api_key=os.getenv("API_KEY"))
-    answer = analyzer.ask_gpt_about_csvs(file_names, prompt, model_name)
-    print(answer)
-    # Извлекаем текст, заключённый в {}
-    matches = re.findall(r"\{([^}]+)\}", answer)
-    if matches:
-        # Объединяем все найденные фрагменты в одну строку
-        text_to_send = "\n".join(matches)
+    db_manager = DatabaseManager(DB_PATH)
+    db_manager.connect()
+    position_open = db_manager.has_status_zero(
+        "model_"+model_name, file_names[0].replace('.csv', ''))
+    if not position_open:
+        analyzer = CSVAnalyzerGPT(api_key=os.getenv("API_KEY"))
+        answer = analyzer.ask_gpt_about_csvs(
+            file_names, prompt, model_name, max_row)
+
+        print(answer)
+        # Извлекаем текст, заключённый в {}
+        matches = re.findall(r"\{([^}]+)\}", answer)
+        if matches:
+            # Объединяем все найденные фрагменты в одну строку
+            format_text = "\n".join(matches)
+            try:
+                text_to_send, db_data = extract_signal_info(
+                    format_text, file_names[0])
+                if db_data['signal'] != None:
+                    db_manager.insert_data("model_"+model_name, db_data)
+                    await bot.send_message(chat_id=chanel_id, text=text_to_send)
+                    logging.info(
+                        "Сообщение успешно отправлено в Telegram-канал.")
+
+            except Exception as e:
+                logging.error(f"Ошибка при отправке сообщения в Telegram: {e}")
+        else:
+            format_text = None
     else:
-        text_to_send = "Нет данных для отправки."
-    try:
-        await bot.send_message(chat_id=chanel_id, text=text_to_send)
-        logging.info("Сообщение успешно отправлено в Telegram-канал.")
-    except Exception as e:
-        logging.error(f"Ошибка при отправке сообщения в Telegram: {e}")
+        print(position_open)
+        high_value, low_value = get_last_high_low(
+            file_names[0], Path("/root/scripts/AI-Signal-Bot/app/downloads"))
+        if position_open['signal'] == "шорт" or position_open['signal'] == "short":
+            if position_open['TP'] > low_value:
+                pnl = (
+                    (position_open['open'] - position_open['TP']) / position_open['TP']) * 100
+                db_manager.update_status_and_pnl(
+                    "model_"+model_name, file_names[0].replace('.csv', ''), pnl)
+                await bot.send_message(chat_id=chanel_id, text=pnl)
+            if position_open['SL'] < high_value:
+                pnl = -(
+                    (position_open['SL'] - position_open['open']) / position_open['open']) * 100
+                db_manager.update_status_and_pnl(
+                    "model_"+model_name, file_names[0].replace('.csv', ''), pnl)
+                await bot.send_message(chat_id=chanel_id, text=pnl)
+        else:
+            if position_open['TP'] < high_value:
+                pnl = (
+                    (position_open['TP'] - position_open['open']) / position_open['open']) * 100
+                db_manager.update_status_and_pnl(
+                    "model_"+model_name, file_names[0].replace('.csv', ''), pnl)
+                await bot.send_message(chat_id=chanel_id, text=pnl)
+            if position_open['SL'] > low_value:
+                pnl = -(
+                    (position_open['open'] - position_open['SL']) / position_open['SL']) * 100
+                db_manager.update_status_and_pnl(
+                    "model_"+model_name, file_names[0].replace('.csv', ''), pnl)
+                await bot.send_message(chat_id=chanel_id, text=pnl)
+
     logging.info("Третья функция завершена.")
 
 
@@ -119,14 +169,14 @@ async def scheduler():
         if minute in {13, 28, 43}:
             await run_every_15_minutes()  # Запуск первой функции
             # Запуск третьей функции после первой
-            await signal_and_send_message(["M15.csv", "H1.csv", "H4.csv"], prompts.prompt_M15, "o1", os.getenv("O1_CHANEL_ID"))
-            await signal_and_send_message(["M15.csv", "H1.csv", "H4.csv"], prompts.prompt_M15, "o3-mini", os.getenv("O3_MINI_CHANEL_ID"))
+            await signal_and_send_message(["M15.csv", "H1.csv", "H4.csv"], prompts.prompt_M15, "o1", os.getenv("O1_CHANEL_ID"), config.O1_MAX_ROW)
+            # await signal_and_send_message(["M15.csv", "H1.csv", "H4.csv"], prompts.prompt_M15, "o3-mini", os.getenv("O3_MINI_CHANEL_ID"), config.O3_MINI_MAX_ROW)
 
         # Запуск каждый час в :58
         if minute == 58:
             await run_every_hour()  # Запуск второй функции
-            await signal_and_send_message(["H1.csv", "H4.csv", "D1.csv"], prompts.prompt_H1, "o1", os.getenv("O1_CHANEL_ID"))
-            await signal_and_send_message(["H1.csv", "H4.csv", "D1.csv"], prompts.prompt_H1, "o3-mini", os.getenv("O3_MINI_CHANEL_ID"))
+            await signal_and_send_message(["H1.csv", "H4.csv", "D1.csv"], prompts.prompt_H1, "o1", os.getenv("O1_CHANEL_ID"), config.O1_MAX_ROW)
+            # await signal_and_send_message(["H1.csv", "H4.csv", "D1.csv"], prompts.prompt_H1, "o3-mini", os.getenv("O3_MINI_CHANEL_ID"), config.O3_MINI_MAX_ROW)
 
         # Ожидание до следующей минуты
         next_minute = (now + timedelta(minutes=1)
@@ -153,6 +203,15 @@ async def scheduler():
 async def on_startup():
     """Функция, которая выполняется при запуске бота."""
     logging.info("Бот запущен.")
+    # Инициализация и подключение к базе данных
+    db_manager = DatabaseManager(DB_PATH)
+    db_manager.connect()
+
+    # Создание таблиц, если они не существуют
+    for table_name, columns in TABLES.items():
+        db_manager.create_table(table_name, columns)
+
+    db_manager.close()
     asyncio.create_task(scheduler())  # Запуск планировщика задач
 
 

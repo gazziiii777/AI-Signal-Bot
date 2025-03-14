@@ -1,6 +1,7 @@
 from pathlib import Path
 import openai
-from app.csv_utils import csvs_to_text
+from app.csv_utils import csvs_to_text, get_last_high_low
+
 
 class CSVAnalyzerGPT:
     def __init__(self, api_key):
@@ -8,10 +9,12 @@ class CSVAnalyzerGPT:
         # Фиксированная директория
         self.downloads_dir = Path("/root/scripts/AI-Signal-Bot/app/downloads")
 
-    def ask_gpt_about_csvs(self, csv_file_names, question, model_name):
+    def ask_gpt_about_csvs(self, csv_file_names, question, model_name, max_row):
         # Используем функцию из csv_utils.py
-        csv_text = csvs_to_text(csv_file_names, self.downloads_dir)
-
+        csv_text = csvs_to_text(csv_file_names, self.downloads_dir, max_row)
+        high_value, low_value = get_last_high_low(
+            csv_file_names[0], self.downloads_dir)
+        print(high_value, low_value)
         prompt = f"""
         У меня есть следующие данные, извлеченные из CSV-файлов, Файл 1 - это 15 минутный таймфрейм, Файл 2- это 60 минутный  таймфрейм, Файл 3 - это 240 минутный таймфрейм. 
 

@@ -1,7 +1,8 @@
 import re
 
 
-def extract_signal_info(text):
+def extract_signal_info(text, timeframe):
+    timeframe = timeframe.replace('.csv', '')
     text = text.replace('"', '')
     # Регулярные выражения для извлечения данных
     signal_pattern = r"Сигнал:\s*(лонг|шорт)"
@@ -18,13 +19,22 @@ def extract_signal_info(text):
     # re.DOTALL для многострочного текста
     rationale_match = re.search(rationale_pattern, text, re.DOTALL)
 
+    signal = signal_match.group(1).strip() if signal_match else None
+    entry = float(entry_match.group(1)) if entry_match else None
+    sl = float(sl_match.group(1)) if sl_match else None
+    tp = float(tp_match.group(1)) if tp_match else None
+    rationale = rationale_match.group(1).strip() if rationale_match else None
     # Формирование результата
-    result = {
-        "Сигнал": signal_match.group(1).strip() if signal_match else None,
-        "Вход": float(entry_match.group(1)) if entry_match else None,
-        "SL": float(sl_match.group(1)) if sl_match else None,
-        "TP": float(tp_match.group(1)) if tp_match else None,
-        "Обоснование": rationale_match.group(1).strip() if rationale_match else None,
+    text_to_send = f"Сигнал: {signal}\nВход: {entry}\nSL: {sl}\nTP: {tp}\nОбоснование: \n{rationale}\n #{timeframe}"
+
+    db_data = {
+        "timeframe": timeframe,
+        "signal": signal,
+        "open": entry,
+        "SL": sl,
+        "TP": tp,
+        "status": 1,
+        "pnl": 0
     }
 
-    return result
+    return text_to_send, db_data
