@@ -1,0 +1,4 @@
+# Конфигурационные параметры
+USER_DATA_DIR = ""
+DOWNLOADS_DIR = ""
+COOKIES_FILE = ""

@@ -1,0 +1,26 @@
+# db_config.py
+
+# Путь к базе данных
+DB_PATH = ""
+
+# Конфигурация таблиц
+TABLES = {
+    "model_o1": {
+        "id": "INTEGER PRIMARY KEY",
+        "timeframe": "TEXT",
+        "signal": "TEXT",
+        "open": "FLOAT",
+        "SL": "FLOAT",
+        "TP": "FLOAT",
+        "status": "INTEGER",
+    },
+    "model_o3_mini": {
+        "id": "INTEGER PRIMARY KEY",
+        "timeframe": "TEXT",
+        "signal": "TEXT",
+        "open": "FLOAT",
+        "SL": "FLOAT",
+        "TP": "FLOAT",
+        "status": "INTEGER",
+    }
+}
