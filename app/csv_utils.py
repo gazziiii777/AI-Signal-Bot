@@ -85,4 +85,4 @@ def get_last_high_low(file_name, downloads_dir):
         high_value = last_line[high_index]
         low_value = last_line[low_index]
 
-    return high_value, low_value
+    return float(high_value), float(low_value)

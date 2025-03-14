@@ -159,7 +159,7 @@ async def signal_and_send_message(file_names, prompt, model_name, chanel_id, max
                 text_to_send = pnl_update(position_open['open'], position_open['TP'],
                                           db_manager, model_name, file_names[0].replace('.csv', ''), False)
                 await bot.send_message(chat_id=chanel_id, text=text_to_send)
-
+                
     logging.info("Третья функция завершена.")
 
 
@@ -178,7 +178,7 @@ async def scheduler():
             # await signal_and_send_message(["M15.csv", "H1.csv", "H4.csv"], prompts.prompt_M15, "o3-mini", os.getenv("O3_MINI_CHANEL_ID"), config.O3_MINI_MAX_ROW)
 
         # Запуск каждый час в :58
-        if minute == 58:
+        if minute == 00:
             await run_every_hour()  # Запуск второй функции
             await signal_and_send_message(["H1.csv", "H4.csv", "D1.csv"], prompts.prompt_H1, "o1", os.getenv("O1_CHANEL_ID"), config.O1_MAX_ROW)
             # await signal_and_send_message(["H1.csv", "H4.csv", "D1.csv"], prompts.prompt_H1, "o3-mini", os.getenv("O3_MINI_CHANEL_ID"), config.O3_MINI_MAX_ROW)
