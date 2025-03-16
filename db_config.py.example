@@ -13,6 +13,7 @@ TABLES = {
         "SL": "FLOAT",
         "TP": "FLOAT",
         "status": "INTEGER",
+        "pnl": "FLOAT",
     },
     "model_o3_mini": {
         "id": "INTEGER PRIMARY KEY",
@@ -22,5 +23,6 @@ TABLES = {
         "SL": "FLOAT",
         "TP": "FLOAT",
         "status": "INTEGER",
+        "pnl": "FLOAT",
     }
 }
