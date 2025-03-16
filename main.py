@@ -102,11 +102,11 @@ def pnl_update(first_prise, second_prise, db_manager, model_name, file_name, pnl
         pnl = -abs(pnl)
         db_manager.update_status_and_pnl("model_"+model_name, file_name, pnl)
         total_pnl = db_manager.get_total_pnl("model_"+model_name, file_name)
-        text_to_send = f'Сделка закрыта по стоп-лоссу. PNL {pnl}%\nКумулятивный PNL #{file_name} {total_pnl}%'
+        text_to_send = f'Сделка закрыта по стоп-лоссу. PNL {pnl}%\nКумулятивный PNL #{file_name} {round(float(total_pnl), 3)}%'
     else:
         db_manager.update_status_and_pnl("model_"+model_name, file_name, pnl)
         total_pnl = db_manager.get_total_pnl("model_"+model_name, file_name)
-        text_to_send = f'Сделка закрыта по тейк-профиту. PNL {pnl}%\nКумулятивный PNL #{file_name} {total_pnl}%'
+        text_to_send = f'Сделка закрыта по тейк-профиту. PNL {pnl}%\nКумулятивный PNL #{file_name} {round(float(total_pnl), 3)}%'
 
     return text_to_send
 
@@ -176,7 +176,7 @@ async def scheduler():
         hour = now.hour
 
         # Запуск каждые 15 минут (в :13, :28, :43, :58)
-        if minute in {13, 28, 43}:
+        if minute in {13, 28, 43, 58}:
             await run_every_15_minutes()  # Запуск первой функции
             # Запуск третьей функции после первой
             await signal_and_send_message(["M15.csv", "H1.csv", "H4.csv"], prompts.prompt_M15, "o1", os.getenv("O1_CHANEL_ID"), config.O1_MAX_ROW)
