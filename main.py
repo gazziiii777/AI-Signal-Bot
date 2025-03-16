@@ -96,14 +96,18 @@ async def run_every_hour():
 
 def pnl_update(first_prise, second_prise, db_manager, model_name, file_name, pnl_status):
     text_to_send = ''
-    pnl = ((first_prise - second_prise) / second_prise) * 100
-    total_pnl = db_manager.get_total_pnl("model_"+model_name)
+    pnl = round(((first_prise - second_prise) / second_prise) * 100, 3)
     # Если pnl_status равно False, делаем pnl отрицательным
     if not pnl_status:
-        text_to_send = f'Сделка закрыта по стоп-лоссу. PNL {pnl}%\nКумулятивный PNL {file_name} {total_pnl}%'
         pnl = -abs(pnl)
+        db_manager.update_status_and_pnl("model_"+model_name, file_name, pnl)
+        total_pnl = db_manager.get_total_pnl("model_"+model_name, file_name)
+        text_to_send = f'Сделка закрыта по стоп-лоссу. PNL {pnl}%\nКумулятивный PNL #{file_name} {total_pnl}%'
+    else:
+        db_manager.update_status_and_pnl("model_"+model_name, file_name, pnl)
+        total_pnl = db_manager.get_total_pnl("model_"+model_name, file_name)
+        text_to_send = f'Сделка закрыта по тейк-профиту. PNL {pnl}%\nКумулятивный PNL #{file_name} {total_pnl}%'
 
-    db_manager.update_status_and_pnl("model_"+model_name, file_name, pnl)
     return text_to_send
 
 
@@ -141,25 +145,28 @@ async def signal_and_send_message(file_names, prompt, model_name, chanel_id, max
         print(position_open)
         high_value, low_value = get_last_high_low(
             file_names[0], Path("/root/scripts/AI-Signal-Bot/app/downloads"))
+        print(high_value, low_value)
         if position_open['signal'] == "шорт" or position_open['signal'] == "short":
             if position_open['TP'] > low_value:
                 text_to_send = pnl_update(position_open['open'], position_open['TP'],
                                           db_manager, model_name, file_names[0].replace('.csv', ''), True)
                 await bot.send_message(chat_id=chanel_id, text=text_to_send)
             if position_open['SL'] < high_value:
-                text_to_send = pnl_update(position_open['open'], position_open['TP'],
+                text_to_send = pnl_update(position_open['open'], position_open['SL'],
                                           db_manager, model_name, file_names[0].replace('.csv', ''), False)
                 await bot.send_message(chat_id=chanel_id, text=text_to_send)
         else:
+            print(1)
             if position_open['TP'] < high_value:
                 text_to_send = pnl_update(position_open['open'], position_open['TP'],
                                           db_manager, model_name, file_names[0].replace('.csv', ''), True)
                 await bot.send_message(chat_id=chanel_id, text=text_to_send)
             if position_open['SL'] > low_value:
-                text_to_send = pnl_update(position_open['open'], position_open['TP'],
+                print(2)
+                text_to_send = pnl_update(position_open['open'], position_open['SL'],
                                           db_manager, model_name, file_names[0].replace('.csv', ''), False)
                 await bot.send_message(chat_id=chanel_id, text=text_to_send)
-                
+
     logging.info("Третья функция завершена.")
 
 

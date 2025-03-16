@@ -158,10 +158,11 @@ class DatabaseManager:
         # Возвращаем количество обновленных строк
         return self.cursor.rowcount
 
-    def get_total_pnl(self, table_name):
+    def get_total_pnl(self, table_name, timeframe=None):
         """
         Возвращает сумму всех значений в столбце pnl для указанной таблицы.
         :param table_name: Имя таблицы, из которой нужно получить сумму pnl.
+        :param timeframe: (опционально) Таймфрейм для фильтрации данных. Если None, суммируются все строки.
         :return: Сумма всех значений в столбце pnl. Если столбец отсутствует или таблица пуста, возвращает 0.
         """
         if not self.connection:
@@ -175,11 +176,16 @@ class DatabaseManager:
             print(f"Столбец 'pnl' отсутствует в таблице {table_name}.")
             return 0
 
-        # Запрос для получения суммы всех значений в столбце pnl
+        # Базовый запрос для получения суммы всех значений в столбце pnl
         sum_pnl_query = f"""
             SELECT SUM(pnl) 
-            FROM {table_name};
+            FROM {table_name}
         """
+
+        # Если передан таймфрейм, добавляем условие WHERE для фильтрации
+        if timeframe:
+            sum_pnl_query += f" WHERE timeframe = '{timeframe}'"
+
         self.cursor.execute(sum_pnl_query)
         sum_pnl = self.cursor.fetchone()[0]  # Получаем сумму pnl
 
