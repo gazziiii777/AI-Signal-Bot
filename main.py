@@ -122,7 +122,7 @@ async def signal_and_send_message(file_names, prompt, model_name, chanel_id, max
         answer = analyzer.ask_gpt_about_csvs(
             file_names, prompt, model_name, max_row)
 
-        print(answer)
+        # print(answer)
         # Извлекаем текст, заключённый в {}
         matches = re.findall(r"\{([^}]+)\}", answer)
         if matches:
@@ -142,10 +142,10 @@ async def signal_and_send_message(file_names, prompt, model_name, chanel_id, max
         else:
             format_text = None
     else:
-        print(position_open)
+        # print(position_open)
         high_value, low_value = get_last_high_low(
             file_names[0], Path("/root/scripts/AI-Signal-Bot/app/downloads"))
-        print(high_value, low_value)
+        # print(high_value, low_value)
         if position_open['signal'] == "шорт" or position_open['signal'] == "short":
             if position_open['TP'] > low_value:
                 text_to_send = pnl_update(position_open['open'], position_open['TP'],
@@ -156,13 +156,11 @@ async def signal_and_send_message(file_names, prompt, model_name, chanel_id, max
                                           db_manager, model_name, file_names[0].replace('.csv', ''), False)
                 await bot.send_message(chat_id=chanel_id, text=text_to_send)
         else:
-            print(1)
             if position_open['TP'] < high_value:
                 text_to_send = pnl_update(position_open['open'], position_open['TP'],
                                           db_manager, model_name, file_names[0].replace('.csv', ''), True)
                 await bot.send_message(chat_id=chanel_id, text=text_to_send)
             if position_open['SL'] > low_value:
-                print(2)
                 text_to_send = pnl_update(position_open['open'], position_open['SL'],
                                           db_manager, model_name, file_names[0].replace('.csv', ''), False)
                 await bot.send_message(chat_id=chanel_id, text=text_to_send)
