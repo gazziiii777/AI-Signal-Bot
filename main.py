@@ -122,7 +122,7 @@ async def signal_and_send_message(file_names, prompt, model_name, chanel_id, max
         answer = analyzer.ask_gpt_about_csvs(
             file_names, prompt, model_name, max_row)
 
-        # print(answer)
+        logging.info(answer)
         # Извлекаем текст, заключённый в {}
         matches = re.findall(r"\{([^}]+)\}", answer)
         if matches:
@@ -183,7 +183,7 @@ async def scheduler():
             # await signal_and_send_message(["M15.csv", "H1.csv", "H4.csv"], prompts.prompt_M15, "o3-mini", os.getenv("O3_MINI_CHANEL_ID"), config.O3_MINI_MAX_ROW)
 
         # Запуск каждый час в :58
-        if minute == 00:
+        if minute == 58:
             await run_every_hour()  # Запуск второй функции
             await signal_and_send_message(["H1.csv", "H4.csv", "D1.csv"], prompts.prompt_H1, "o1", os.getenv("O1_CHANEL_ID"), config.O1_MAX_ROW)
             # await signal_and_send_message(["H1.csv", "H4.csv", "D1.csv"], prompts.prompt_H1, "o3-mini", os.getenv("O3_MINI_CHANEL_ID"), config.O3_MINI_MAX_ROW)

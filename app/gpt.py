@@ -31,7 +31,7 @@ class CSVAnalyzerGPT:
                     "content": "Выступи в роли профессионального трейдера-аналитика"},
                 {"role": "user", "content": prompt},
             ],
-            reasoning_effort="high"
+            # reasoning_effort="high"
         )
 
         return response.choices[0].message.content
