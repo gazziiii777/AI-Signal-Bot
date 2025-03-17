@@ -104,6 +104,7 @@ def pnl_update(first_prise, second_prise, db_manager, model_name, file_name, pnl
         total_pnl = db_manager.get_total_pnl("model_"+model_name, file_name)
         text_to_send = f'Сделка закрыта по стоп-лоссу. PNL {pnl}%\nКумулятивный PNL #{file_name} {round(float(total_pnl), 3)}%'
     else:
+        pnl = abs(pnl)
         db_manager.update_status_and_pnl("model_"+model_name, file_name, pnl)
         total_pnl = db_manager.get_total_pnl("model_"+model_name, file_name)
         text_to_send = f'Сделка закрыта по тейк-профиту. PNL {pnl}%\nКумулятивный PNL #{file_name} {round(float(total_pnl), 3)}%'
@@ -157,7 +158,7 @@ async def signal_and_send_message(file_names, prompt, model_name, chanel_id, max
                 await bot.send_message(chat_id=chanel_id, text=text_to_send)
         else:
             if position_open['TP'] < high_value:
-                text_to_send = pnl_update(position_open['open'], position_open['TP'],
+                text_to_send = pnl_update(position_open['TP'], position_open['open'],
                                           db_manager, model_name, file_names[0].replace('.csv', ''), True)
                 await bot.send_message(chat_id=chanel_id, text=text_to_send)
             if position_open['SL'] > low_value:
