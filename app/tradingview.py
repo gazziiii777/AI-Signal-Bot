@@ -101,7 +101,7 @@ class TradingViewButtonClicker:
 
     async def click_1_hour_button(self, page):
         """Нажимает на одну из кнопок '1 час', если она видима и доступна в указанной вкладке."""
-        button_selector = "button[aria-label='1 час'][aria-checked='false'][role='radio']"
+        button_selector = "button[aria-label='1 час'][role='radio']"
         buttons = await page.query_selector_all(button_selector)
         for button in buttons:
             if await button.is_visible() and await button.is_enabled():
@@ -110,7 +110,7 @@ class TradingViewButtonClicker:
 
     async def click_4_hour_button(self, page):
         """Нажимает на одну из кнопок '4 часа', если она видима и доступна в указанной вкладке."""
-        button_selector = "button[aria-label='4 часа'][aria-checked='false'][role='radio']"
+        button_selector = "button[aria-label='4 часа'][role='radio']"
         buttons = await page.query_selector_all(button_selector)
         for button in buttons:
             if await button.is_visible() and await button.is_enabled():
@@ -119,7 +119,7 @@ class TradingViewButtonClicker:
 
     async def click_1_day_button(self, page):
         """Нажимает на одну из кнопок '1 день', если она видима и доступна в указанной вкладке."""
-        button_selector = "button[aria-label='1 день'][aria-checked='false'][role='radio']"
+        button_selector = "button[aria-label='1 день'][data-tooltip='1 день'][role='radio']"
         buttons = await page.query_selector_all(button_selector)
         for button in buttons:
             if await button.is_visible() and await button.is_enabled():
