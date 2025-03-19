@@ -25,7 +25,7 @@ def extract_signal_info(text, timeframe):
     tp = float(tp_match.group(1)) if tp_match else None
     rationale = rationale_match.group(1).strip() if rationale_match else None
     # Формирование результата
-    text_to_send = f"Сигнал: {signal}\nВход: {entry}\nSL: {sl}\nTP: {tp}\nОбоснование: \n{rationale}\n #{timeframe}"
+    text_to_send = f"Сигнал: {signal}\nВход: {entry}\nSL: {sl}\nTP: {tp}\nОбоснование: \n{rationale}\n\n#{timeframe}"
 
     db_data = {
         "timeframe": timeframe,
