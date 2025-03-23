@@ -102,12 +102,12 @@ def pnl_update(first_prise, second_prise, db_manager, model_name, file_name, pnl
         pnl = -abs(pnl)
         db_manager.update_status_and_pnl("model_"+model_name, file_name, pnl)
         total_pnl = db_manager.get_total_pnl("model_"+model_name, file_name)
-        text_to_send = f'Сделка закрыта по стоп-лоссу. PNL {pnl}%\nКумулятивный PNL #{file_name} {round(float(total_pnl), 3)}%'
+        text_to_send = f'Сделка закрыта по стоп-лоссу. PNL {pnl}%\nКумулятивный PNL {round(float(total_pnl), 3)}%\n\n#{file_name}'
     else:
         pnl = abs(pnl)
         db_manager.update_status_and_pnl("model_"+model_name, file_name, pnl)
         total_pnl = db_manager.get_total_pnl("model_"+model_name, file_name)
-        text_to_send = f'Сделка закрыта по тейк-профиту. PNL {pnl}%\nКумулятивный PNL #{file_name} {round(float(total_pnl), 3)}%'
+        text_to_send = f'Сделка закрыта по тейк-профиту. PNL {pnl}%\nКумулятивный PNL {round(float(total_pnl), 3)}%\n\n#{file_name}'
 
     return text_to_send
 
