@@ -30,7 +30,6 @@ def csvs_to_text(csv_file_names, downloads_dir, max_row):
         # Добавляем результат в список
         csv_texts.append(
             f"Файл {i} ({file_name}):\n" + "\n".join(wrapped_lines))
-
     if not csv_texts:  # Если ни один файл не был обработан
         return "Нет данных для анализа.", None
 

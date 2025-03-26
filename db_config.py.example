@@ -5,9 +5,10 @@ DB_PATH = ""
 
 # Конфигурация таблиц
 TABLES = {
-    "model_o1": {
+    "RR3": {
         "id": "INTEGER PRIMARY KEY",
         "timeframe": "TEXT",
+        "coin_name":"TEXT",
         "signal": "TEXT",
         "open": "FLOAT",
         "SL": "FLOAT",
@@ -15,9 +16,10 @@ TABLES = {
         "status": "INTEGER",
         "pnl": "FLOAT",
     },
-    "model_o3_mini": {
+    "RR5": {
         "id": "INTEGER PRIMARY KEY",
         "timeframe": "TEXT",
+        "coin_name":"TEXT",
         "signal": "TEXT",
         "open": "FLOAT",
         "SL": "FLOAT",
@@ -26,3 +28,4 @@ TABLES = {
         "pnl": "FLOAT",
     }
 }
+

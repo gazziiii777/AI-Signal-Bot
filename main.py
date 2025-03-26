@@ -115,6 +115,7 @@ def pnl_update(first_prise, second_prise, db_manager, db_name, file_name, pnl_st
 async def signal_and_send_message(file_names, prompt, model_name, chanel_id, max_row, coin_name, db_name):
     """Третья функция, которая выполняется после первой или второй."""
     timeframe = file_names[0].split("_")[0]
+    RR_name = db_name.replace(db_name, "3")
     db_manager = DatabaseManager(DB_PATH)
     db_manager.connect()
     position_open = db_manager.has_status_zero(
@@ -132,7 +133,7 @@ async def signal_and_send_message(file_names, prompt, model_name, chanel_id, max
             format_text = "\n".join(matches)
             try:
                 text_to_send, db_data = extract_signal_info(
-                    format_text, timeframe, coin_name)
+                    format_text, timeframe, coin_name, RR_name)
                 if db_data['signal'] != None:
                     db_manager.insert_data(db_name, db_data)
                     await bot.send_message(chat_id=chanel_id, text=text_to_send)
@@ -178,26 +179,26 @@ async def scheduler():
         hour = now.hour
 
         # Запуск каждые 15 минут (в :13, :28, :43, :58)
-        if minute in {21, 28, 43, 58}:
+        if minute in {12, 28, 43, 58}:
             await run_every_15_minutes()  # Запуск первой функции
             # Запуск третьей функции после первой
-            await signal_and_send_message(["M15_BTC.csv", "H1_BTC.csv", "H4_BTC.csv"], prompts.prompt_M15, "o1", os.getenv("O1_CHANEL_ID"), config.O1_MAX_ROW, 'BTC', 'RR3')
-            await signal_and_send_message(["M15_ETH.csv", "H1_ETH.csv", "H4_ETH.csv"], prompts.prompt_M15, "o1", os.getenv("O1_CHANEL_ID"), config.O1_MAX_ROW, 'ETH', 'RR3')
-            await signal_and_send_message(["M15_SOL.csv", "H1_SOL.csv", "H4_SOL.csv"], prompts.prompt_M15, "o1", os.getenv("O1_CHANEL_ID"), config.O1_MAX_ROW, 'SOL', 'RR3')
-            await signal_and_send_message(["M15_BTC.csv", "H1_BTC.csv", "H4_BTC.csv"], prompts.prompt_M15, "o1", os.getenv("O1_CHANEL_ID"), config.O1_MAX_ROW, 'BTC', 'RR5')
-            await signal_and_send_message(["M15_ETH.csv", "H1_ETH.csv", "H4_ETH.csv"], prompts.prompt_M15, "o1", os.getenv("O1_CHANEL_ID"), config.O1_MAX_ROW, 'ETH', 'RR5')
-            await signal_and_send_message(["M15_SOL.csv", "H1_SOL.csv", "H4_SOL.csv"], prompts.prompt_M15, "o1", os.getenv("O1_CHANEL_ID"), config.O1_MAX_ROW, 'SOL', 'RR5')
+            await signal_and_send_message(["M15_BTC.csv", "H1_BTC.csv", "H4_BTC.csv"], prompts.prompt_M15_RR3, "o1", os.getenv("RR3_CHANEL_ID"), config.O1_MAX_ROW, 'BTC', 'RR3')
+            await signal_and_send_message(["M15_ETH.csv", "H1_ETH.csv", "H4_ETH.csv"], prompts.prompt_M15_RR3, "o1", os.getenv("RR3_CHANEL_ID"), config.O1_MAX_ROW, 'ETH', 'RR3')
+            await signal_and_send_message(["M15_SOL.csv", "H1_SOL.csv", "H4_SOL.csv"], prompts.prompt_M15_RR3, "o1", os.getenv("RR3_CHANEL_ID"), config.O1_MAX_ROW, 'SOL', 'RR3')
+            await signal_and_send_message(["M15_BTC.csv", "H1_BTC.csv", "H4_BTC.csv"], prompts.prompt_H1_RR3, "o1", os.getenv("RR5_CHANEL_ID"), config.O1_MAX_ROW, 'BTC', 'RR5')
+            await signal_and_send_message(["M15_ETH.csv", "H1_ETH.csv", "H4_ETH.csv"], prompts.prompt_H1_RR3, "o1", os.getenv("RR5_CHANEL_ID"), config.O1_MAX_ROW, 'ETH', 'RR5')
+            await signal_and_send_message(["M15_SOL.csv", "H1_SOL.csv", "H4_SOL.csv"], prompts.prompt_H1_RR3, "o1", os.getenv("RR5_CHANEL_ID"), config.O1_MAX_ROW, 'SOL', 'RR5')
             # await signal_and_send_message(["M15.csv", "H1.csv", "H4.csv"], prompts.prompt_M15, "o3-mini", os.getenv("O3_MINI_CHANEL_ID"), config.O3_MINI_MAX_ROW)
 
         # Запуск каждый час в :58
         if minute == 58:
             await run_every_hour()  # Запуск второй функции
-            await signal_and_send_message(["H1_BTC.csv", "H4_BTC.csv", "D1_BTC.csv"], prompts.prompt_H1, "o1", os.getenv("O1_CHANEL_ID"), config.O1_MAX_ROW, 'BTC', 'RR3')
-            await signal_and_send_message(["H1_ETH.csv", "H4_ETH.csv", "D1_ETH.csv"], prompts.prompt_H1, "o1", os.getenv("O1_CHANEL_ID"), config.O1_MAX_ROW, 'ETH', 'RR3')
-            await signal_and_send_message(["H1_SOL.csv", "H4_SOL.csv", "D1_SOL.csv"], prompts.prompt_H1, "o1", os.getenv("O1_CHANEL_ID"), config.O1_MAX_ROW, 'SOL', 'RR3')
-            await signal_and_send_message(["H1_BTC.csv", "H4_BTC.csv", "D1_BTC.csv"], prompts.prompt_H1, "o1", os.getenv("O1_CHANEL_ID"), config.O1_MAX_ROW, 'BTC', 'RR5')
-            await signal_and_send_message(["H1_ETH.csv", "H4_ETH.csv", "D1_ETH.csv"], prompts.prompt_H1, "o1", os.getenv("O1_CHANEL_ID"), config.O1_MAX_ROW, 'ETH', 'RR5')
-            await signal_and_send_message(["H1_SOL.csv", "H4_SOL.csv", "D1_SOL.csv"], prompts.prompt_H1, "o1", os.getenv("O1_CHANEL_ID"), config.O1_MAX_ROW, 'SOL', 'RR5')
+            await signal_and_send_message(["H1_BTC.csv", "H4_BTC.csv", "D1_BTC.csv"], prompts.prompt_M15_RR5, "o1", os.getenv("RR3_CHANEL_ID"), config.O1_MAX_ROW, 'BTC', 'RR3')
+            await signal_and_send_message(["H1_ETH.csv", "H4_ETH.csv", "D1_ETH.csv"], prompts.prompt_M15_RR5, "o1", os.getenv("RR3_CHANEL_ID"), config.O1_MAX_ROW, 'ETH', 'RR3')
+            await signal_and_send_message(["H1_SOL.csv", "H4_SOL.csv", "D1_SOL.csv"], prompts.prompt_M15_RR5, "o1", os.getenv("RR3_CHANEL_ID"), config.O1_MAX_ROW, 'SOL', 'RR3')
+            await signal_and_send_message(["H1_BTC.csv", "H4_BTC.csv", "D1_BTC.csv"], prompts.prompt_H1_RR5, "o1", os.getenv("RR5_CHANEL_ID"), config.O1_MAX_ROW, 'BTC', 'RR5')
+            await signal_and_send_message(["H1_ETH.csv", "H4_ETH.csv", "D1_ETH.csv"], prompts.prompt_H1_RR5, "o1", os.getenv("RR5_CHANEL_ID"), config.O1_MAX_ROW, 'ETH', 'RR5')
+            await signal_and_send_message(["H1_SOL.csv", "H4_SOL.csv", "D1_SOL.csv"], prompts.prompt_H1_RR5, "o1", os.getenv("RR5_CHANEL_ID"), config.O1_MAX_ROW, 'SOL', 'RR5')
             # await signal_and_send_message(["H1.csv", "H4.csv", "D1.csv"], prompts.prompt_H1, "o3-mini", os.getenv("O3_MINI_CHANEL_ID"), config.O3_MINI_MAX_ROW)
 
         # Ожидание до следующей минуты

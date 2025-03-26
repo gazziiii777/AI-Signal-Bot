@@ -11,6 +11,7 @@ class CSVAnalyzerGPT:
 
     def ask_gpt_about_csvs(self, csv_file_names, question, model_name, max_row):
         # Используем функцию из csv_utils.py
+        print(2)
         csv_text = csvs_to_text(csv_file_names, self.downloads_dir, max_row)
         # high_value, low_value = get_last_high_low(
         #     csv_file_names[0], self.downloads_dir)

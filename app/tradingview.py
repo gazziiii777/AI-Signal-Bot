@@ -48,7 +48,7 @@ class TradingViewButtonClicker:
         self.playwright = await async_playwright().start()
         self.browser = await self.playwright.chromium.launch_persistent_context(
             user_data_dir=self.user_data_dir,
-            headless=False,
+            headless=True,
             args=["--no-sandbox", "--disable-dev-shm-usage",
                   "--disable-extensions"],
             downloads_path=self.downloads_dir

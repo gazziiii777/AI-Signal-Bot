@@ -1,7 +1,7 @@
 import re
 
 
-def extract_signal_info(text, timeframe, coin_name):
+def extract_signal_info(text, timeframe, coin_name, RR_name):
     text = text.replace('"', '')
     # Регулярные выражения для извлечения данных
     signal_pattern = r"Сигнал:\s*(лонг|шорт)"
@@ -24,7 +24,7 @@ def extract_signal_info(text, timeframe, coin_name):
     tp = float(tp_match.group(1)) if tp_match else None
     rationale = rationale_match.group(1).strip() if rationale_match else None
     # Формирование результата
-    text_to_send = f"Сигнал: {signal}\nВход: {entry}\nSL: {sl}\nTP: {tp}\nОбоснование: \n{rationale}\n\n#{timeframe}"
+    text_to_send = f"#{coin_name}\n#{timeframe}\n\nСигнал: {signal}\nВход: {entry}\nSL: {sl}\nTP: {tp}\nRR: 1:{RR_name}"
 
     db_data = {
         "timeframe": timeframe,
