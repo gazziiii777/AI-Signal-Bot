@@ -60,7 +60,7 @@ class TradingViewButtonClicker:
         cookies = self._load_cookies()
 
         # Открываем две вкладки
-        for _ in range(3):
+        for _ in range(9):
             page = await self.browser.new_page()
             await page.context.add_cookies(cookies)
             await page.goto("https://ru.tradingview.com/chart/dBNU59NG/", wait_until="domcontentloaded")
@@ -89,9 +89,10 @@ class TradingViewButtonClicker:
         logging.error(
             "Элемент cell-RsFlttSS.flexCell-RsFlttSS не удалось нажать после 3 попыток.")
 
-    async def click_15_min_button(self, page):
+    async def click_button(self, page, button_params):
         """Нажимает на одну из кнопок '15 минут', если она видима и доступна в указанной вкладке."""
-        button_selector = "button[aria-label='15 минут'][role='radio']"
+        await asyncio.sleep(2)
+        button_selector = button_params
         buttons = await page.query_selector_all(button_selector)
         for button in buttons:
             if await button.is_visible() and await button.is_enabled():
@@ -99,36 +100,46 @@ class TradingViewButtonClicker:
                 await button.click()
                 return
 
-    async def click_1_hour_button(self, page):
-        """Нажимает на одну из кнопок '1 час', если она видима и доступна в указанной вкладке."""
-        button_selector = "button[aria-label='1 час'][role='radio']"
-        buttons = await page.query_selector_all(button_selector)
-        for button in buttons:
-            if await button.is_visible() and await button.is_enabled():
-                await button.click()
-                return
+    # async def click_15_min_button(self, page):
+    #     """Нажимает на одну из кнопок '15 минут', если она видима и доступна в указанной вкладке."""
+    #     button_selector = "button[aria-label='15 минут'][role='radio']"
+    #     buttons = await page.query_selector_all(button_selector)
+    #     for button in buttons:
+    #         if await button.is_visible() and await button.is_enabled():
+    #             await asyncio.sleep(2)
+    #             await button.click()
+    #             return
 
-    async def click_4_hour_button(self, page):
-        """Нажимает на одну из кнопок '4 часа', если она видима и доступна в указанной вкладке."""
-        await asyncio.sleep(2)
-        button_selector = "button[data-tooltip='4 часа']"
-        buttons = await page.query_selector_all(button_selector)
-        button_div = "div[data-symbol-short='DYDXUSDT']"
-        buttons_div = await page.query_selector_all(button_div)
+    # async def click_1_hour_button(self, page):
+    #     """Нажимает на одну из кнопок '1 час', если она видима и доступна в указанной вкладке."""
+    #     button_selector = "button[aria-label='1 час'][role='radio']"
+    #     buttons = await page.query_selector_all(button_selector)
+    #     for button in buttons:
+    #         if await button.is_visible() and await button.is_enabled():
+    #             await button.click()
+    #             return
 
-        for button in buttons:
-            if await button.is_visible() and await button.is_enabled():
-                await button.click()
-                return
+    # async def click_4_hour_button(self, page):
+    #     """Нажимает на одну из кнопок '4 часа', если она видима и доступна в указанной вкладке."""
+    #     await asyncio.sleep(2)
+    #     button_selector = "button[data-tooltip='4 часа']"
+    #     buttons = await page.query_selector_all(button_selector)
+    #     button_div = "div[data-symbol-short='DYDXUSDT']"
+    #     buttons_div = await page.query_selector_all(button_div)
 
-    async def click_1_day_button(self, page):
-        """Нажимает на одну из кнопок '1 день', если она видима и доступна в указанной вкладке."""
-        button_selector = "button[aria-label='1 день'][data-tooltip='1 день'][role='radio']"
-        buttons = await page.query_selector_all(button_selector)
-        for button in buttons:
-            if await button.is_visible() and await button.is_enabled():
-                await button.click()
-                return
+    #     for button in buttons:
+    #         if await button.is_visible() and await button.is_enabled():
+    #             await button.click()
+    #             return
+
+    # async def click_1_day_button(self, page):
+    #     """Нажимает на одну из кнопок '1 день', если она видима и доступна в указанной вкладке."""
+    #     button_selector = "button[aria-label='1 день'][data-tooltip='1 день'][role='radio']"
+    #     buttons = await page.query_selector_all(button_selector)
+    #     for button in buttons:
+    #         if await button.is_visible() and await button.is_enabled():
+    #             await button.click()
+    #             return
 
     async def click_download(self, page, file_name):
         """Нажимает на одну из кнопок для загрузки, затем на несколько спанов с текстами 'Экспорт данных графика…' и других в указанной вкладке."""
@@ -186,16 +197,46 @@ class TradingViewButtonClicker:
         """Выполняет действия в выбранной вкладке по индексу."""
         if tab_index == 0:
             page = self.pages[tab_index]
-            await self.click_15_min_button(page)
-            await self.click_download(page, 'M15.csv')
+            await self.click_button(page, "button[aria-label='15 минут'][role='radio']")
+            await self.click_download(page, 'M15_BTC.csv')
         elif tab_index == 1:
             page = self.pages[tab_index]
-            await self.click_1_hour_button(page)
-            await self.click_download(page, 'H1.csv')
+            await self.click_button(page, "button[aria-label='1 час'][role='radio']")
+            await self.click_download(page, 'H1_BTC.csv')
         elif tab_index == 2:
             page = self.pages[tab_index]
-            await self.click_4_hour_button(page)
-            await self.click_download(page, 'H4.csv')
+            await self.click_button(page, "button[data-tooltip='4 часа']")
+            await self.click_download(page, 'H4_BTC.csv')
+        elif tab_index == 3:
+            page = self.pages[tab_index]
+            await self.click_button(page, "div[data-symbol-short='ETHUSDT.P']")
+            await self.click_button(page, "button[aria-label='15 минут'][role='radio']")
+            await self.click_download(page, 'M15_ETH.csv')
+        elif tab_index == 4:
+            page = self.pages[tab_index]
+            await self.click_button(page, "div[data-symbol-short='ETHUSDT.P']")
+            await self.click_button(page, "button[aria-label='1 час'][role='radio']")
+            await self.click_download(page, 'H1_ETH.csv')
+        elif tab_index == 5:
+            page = self.pages[tab_index]
+            await self.click_button(page, "div[data-symbol-short='ETHUSDT.P']")
+            await self.click_button(page, "button[data-tooltip='4 часа']")
+            await self.click_download(page, 'H4_ETH.csv')
+        elif tab_index == 6:
+            page = self.pages[tab_index]
+            await self.click_button(page, "div[data-symbol-short='SOLUSDT.P']")
+            await self.click_button(page, "button[aria-label='15 минут'][role='radio']")
+            await self.click_download(page, 'M15_SOL.csv')
+        elif tab_index == 7:
+            page = self.pages[tab_index]
+            await self.click_button(page, "div[data-symbol-short='SOLUSDT.P']")
+            await self.click_button(page, "button[aria-label='1 час'][role='radio']")
+            await self.click_download(page, 'H1_SOL.csv')
+        elif tab_index == 8:
+            page = self.pages[tab_index]
+            await self.click_button(page, "div[data-symbol-short='SOLUSDT.P']")
+            await self.click_button(page, "button[data-tooltip='4 часа']")
+            await self.click_download(page, 'H4_SOL.csv')
         else:
             logging.error(f"Вкладка с индексом {tab_index} не существует.")
 

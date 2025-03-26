@@ -177,7 +177,7 @@ async def scheduler():
         hour = now.hour
 
         # Запуск каждые 15 минут (в :13, :28, :43, :58)
-        if minute in {38, 28, 43, 58}:
+        if minute in {21, 28, 43, 58}:
             await run_every_15_minutes()  # Запуск первой функции
             # Запуск третьей функции после первой
             await signal_and_send_message(["M15.csv", "H1.csv", "H4.csv"], prompts.prompt_M15, "o1", os.getenv("O1_CHANEL_ID"), config.O1_MAX_ROW)
