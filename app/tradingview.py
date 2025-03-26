@@ -48,7 +48,7 @@ class TradingViewButtonClicker:
         self.playwright = await async_playwright().start()
         self.browser = await self.playwright.chromium.launch_persistent_context(
             user_data_dir=self.user_data_dir,
-            headless=True,
+            headless=False,
             args=["--no-sandbox", "--disable-dev-shm-usage",
                   "--disable-extensions"],
             downloads_path=self.downloads_dir
@@ -91,7 +91,7 @@ class TradingViewButtonClicker:
 
     async def click_15_min_button(self, page):
         """Нажимает на одну из кнопок '15 минут', если она видима и доступна в указанной вкладке."""
-        button_selector = "button[aria-label='15 минут'][aria-checked='false'][role='radio']"
+        button_selector = "button[aria-label='15 минут'][role='radio']"
         buttons = await page.query_selector_all(button_selector)
         for button in buttons:
             if await button.is_visible() and await button.is_enabled():
@@ -110,8 +110,12 @@ class TradingViewButtonClicker:
 
     async def click_4_hour_button(self, page):
         """Нажимает на одну из кнопок '4 часа', если она видима и доступна в указанной вкладке."""
-        button_selector = "button[aria-label='4 часа'][role='radio']"
+        await asyncio.sleep(2)
+        button_selector = "button[data-tooltip='4 часа']"
         buttons = await page.query_selector_all(button_selector)
+        button_div = "div[data-symbol-short='DYDXUSDT']"
+        buttons_div = await page.query_selector_all(button_div)
+
         for button in buttons:
             if await button.is_visible() and await button.is_enabled():
                 await button.click()
