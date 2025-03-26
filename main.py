@@ -94,30 +94,31 @@ async def run_every_hour():
             logging.info("Браузер закрыт после выгрузки задач каждый час.")
 
 
-def pnl_update(first_prise, second_prise, db_manager, model_name, file_name, pnl_status):
+def pnl_update(first_prise, second_prise, db_manager, db_name, file_name, pnl_status, coin_name):
     text_to_send = ''
     pnl = round(((first_prise - second_prise) / second_prise) * 100, 3)
     # Если pnl_status равно False, делаем pnl отрицательным
     if not pnl_status:
         pnl = -abs(pnl)
-        db_manager.update_status_and_pnl("model_"+model_name, file_name, pnl)
-        total_pnl = db_manager.get_total_pnl("model_"+model_name, file_name)
+        db_manager.update_status_and_pnl(db_name, file_name, pnl, coin_name)
+        total_pnl = db_manager.get_total_pnl(db_name, file_name)
         text_to_send = f'Сделка закрыта по стоп-лоссу. PNL {pnl}%\nКумулятивный PNL {round(float(total_pnl), 3)}%\n\n#{file_name}'
     else:
         pnl = abs(pnl)
-        db_manager.update_status_and_pnl("model_"+model_name, file_name, pnl)
-        total_pnl = db_manager.get_total_pnl("model_"+model_name, file_name)
+        db_manager.update_status_and_pnl(db_name, file_name, pnl, coin_name)
+        total_pnl = db_manager.get_total_pnl(db_name, file_name)
         text_to_send = f'Сделка закрыта по тейк-профиту. PNL {pnl}%\nКумулятивный PNL {round(float(total_pnl), 3)}%\n\n#{file_name}'
 
     return text_to_send
 
 
-async def signal_and_send_message(file_names, prompt, model_name, chanel_id, max_row):
+async def signal_and_send_message(file_names, prompt, model_name, chanel_id, max_row, coin_name, db_name):
     """Третья функция, которая выполняется после первой или второй."""
+    timeframe = file_names[0].split("_")[0]
     db_manager = DatabaseManager(DB_PATH)
     db_manager.connect()
     position_open = db_manager.has_status_zero(
-        "model_"+model_name, file_names[0].replace('.csv', ''))
+        db_name, timeframe, coin_name)
     if not position_open:
         analyzer = CSVAnalyzerGPT(api_key=os.getenv("API_KEY"))
         answer = analyzer.ask_gpt_about_csvs(
@@ -131,9 +132,9 @@ async def signal_and_send_message(file_names, prompt, model_name, chanel_id, max
             format_text = "\n".join(matches)
             try:
                 text_to_send, db_data = extract_signal_info(
-                    format_text, file_names[0])
+                    format_text, timeframe, coin_name)
                 if db_data['signal'] != None:
-                    db_manager.insert_data("model_"+model_name, db_data)
+                    db_manager.insert_data(db_name, db_data)
                     await bot.send_message(chat_id=chanel_id, text=text_to_send)
                     logging.info(
                         "Сообщение успешно отправлено в Telegram-канал.")
@@ -150,20 +151,20 @@ async def signal_and_send_message(file_names, prompt, model_name, chanel_id, max
         if position_open['signal'] == "шорт" or position_open['signal'] == "short":
             if position_open['TP'] > low_value:
                 text_to_send = pnl_update(position_open['open'], position_open['TP'],
-                                          db_manager, model_name, file_names[0].replace('.csv', ''), True)
+                                          db_manager, db_name, timeframe, True, coin_name)
                 await bot.send_message(chat_id=chanel_id, text=text_to_send)
             if position_open['SL'] < high_value:
                 text_to_send = pnl_update(position_open['open'], position_open['SL'],
-                                          db_manager, model_name, file_names[0].replace('.csv', ''), False)
+                                          db_manager, db_name, timeframe, False, coin_name)
                 await bot.send_message(chat_id=chanel_id, text=text_to_send)
         else:
             if position_open['TP'] < high_value:
                 text_to_send = pnl_update(position_open['TP'], position_open['open'],
-                                          db_manager, model_name, file_names[0].replace('.csv', ''), True)
+                                          db_manager, db_name, timeframe, True, coin_name)
                 await bot.send_message(chat_id=chanel_id, text=text_to_send)
             if position_open['SL'] > low_value:
                 text_to_send = pnl_update(position_open['open'], position_open['SL'],
-                                          db_manager, model_name, file_names[0].replace('.csv', ''), False)
+                                          db_manager, db_name, timeframe, False, coin_name)
                 await bot.send_message(chat_id=chanel_id, text=text_to_send)
 
     logging.info("Третья функция завершена.")
@@ -180,13 +181,23 @@ async def scheduler():
         if minute in {21, 28, 43, 58}:
             await run_every_15_minutes()  # Запуск первой функции
             # Запуск третьей функции после первой
-            await signal_and_send_message(["M15.csv", "H1.csv", "H4.csv"], prompts.prompt_M15, "o1", os.getenv("O1_CHANEL_ID"), config.O1_MAX_ROW)
+            await signal_and_send_message(["M15_BTC.csv", "H1_BTC.csv", "H4_BTC.csv"], prompts.prompt_M15, "o1", os.getenv("O1_CHANEL_ID"), config.O1_MAX_ROW, 'BTC', 'RR3')
+            await signal_and_send_message(["M15_ETH.csv", "H1_ETH.csv", "H4_ETH.csv"], prompts.prompt_M15, "o1", os.getenv("O1_CHANEL_ID"), config.O1_MAX_ROW, 'ETH', 'RR3')
+            await signal_and_send_message(["M15_SOL.csv", "H1_SOL.csv", "H4_SOL.csv"], prompts.prompt_M15, "o1", os.getenv("O1_CHANEL_ID"), config.O1_MAX_ROW, 'SOL', 'RR3')
+            await signal_and_send_message(["M15_BTC.csv", "H1_BTC.csv", "H4_BTC.csv"], prompts.prompt_M15, "o1", os.getenv("O1_CHANEL_ID"), config.O1_MAX_ROW, 'BTC', 'RR5')
+            await signal_and_send_message(["M15_ETH.csv", "H1_ETH.csv", "H4_ETH.csv"], prompts.prompt_M15, "o1", os.getenv("O1_CHANEL_ID"), config.O1_MAX_ROW, 'ETH', 'RR5')
+            await signal_and_send_message(["M15_SOL.csv", "H1_SOL.csv", "H4_SOL.csv"], prompts.prompt_M15, "o1", os.getenv("O1_CHANEL_ID"), config.O1_MAX_ROW, 'SOL', 'RR5')
             # await signal_and_send_message(["M15.csv", "H1.csv", "H4.csv"], prompts.prompt_M15, "o3-mini", os.getenv("O3_MINI_CHANEL_ID"), config.O3_MINI_MAX_ROW)
 
         # Запуск каждый час в :58
         if minute == 58:
             await run_every_hour()  # Запуск второй функции
-            await signal_and_send_message(["H1.csv", "H4.csv", "D1.csv"], prompts.prompt_H1, "o1", os.getenv("O1_CHANEL_ID"), config.O1_MAX_ROW)
+            await signal_and_send_message(["H1_BTC.csv", "H4_BTC.csv", "D1_BTC.csv"], prompts.prompt_H1, "o1", os.getenv("O1_CHANEL_ID"), config.O1_MAX_ROW, 'BTC', 'RR3')
+            await signal_and_send_message(["H1_ETH.csv", "H4_ETH.csv", "D1_ETH.csv"], prompts.prompt_H1, "o1", os.getenv("O1_CHANEL_ID"), config.O1_MAX_ROW, 'ETH', 'RR3')
+            await signal_and_send_message(["H1_SOL.csv", "H4_SOL.csv", "D1_SOL.csv"], prompts.prompt_H1, "o1", os.getenv("O1_CHANEL_ID"), config.O1_MAX_ROW, 'SOL', 'RR3')
+            await signal_and_send_message(["H1_BTC.csv", "H4_BTC.csv", "D1_BTC.csv"], prompts.prompt_H1, "o1", os.getenv("O1_CHANEL_ID"), config.O1_MAX_ROW, 'BTC', 'RR5')
+            await signal_and_send_message(["H1_ETH.csv", "H4_ETH.csv", "D1_ETH.csv"], prompts.prompt_H1, "o1", os.getenv("O1_CHANEL_ID"), config.O1_MAX_ROW, 'ETH', 'RR5')
+            await signal_and_send_message(["H1_SOL.csv", "H4_SOL.csv", "D1_SOL.csv"], prompts.prompt_H1, "o1", os.getenv("O1_CHANEL_ID"), config.O1_MAX_ROW, 'SOL', 'RR5')
             # await signal_and_send_message(["H1.csv", "H4.csv", "D1.csv"], prompts.prompt_H1, "o3-mini", os.getenv("O3_MINI_CHANEL_ID"), config.O3_MINI_MAX_ROW)
 
         # Ожидание до следующей минуты

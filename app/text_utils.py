@@ -1,8 +1,7 @@
 import re
 
 
-def extract_signal_info(text, timeframe):
-    timeframe = timeframe.replace('.csv', '')
+def extract_signal_info(text, timeframe, coin_name):
     text = text.replace('"', '')
     # Регулярные выражения для извлечения данных
     signal_pattern = r"Сигнал:\s*(лонг|шорт)"
@@ -30,6 +29,7 @@ def extract_signal_info(text, timeframe):
     db_data = {
         "timeframe": timeframe,
         "signal": signal,
+        "coin_name": coin_name,
         "open": entry,
         "SL": sl,
         "TP": tp,

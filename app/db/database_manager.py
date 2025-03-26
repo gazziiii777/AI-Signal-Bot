@@ -88,7 +88,7 @@ class DatabaseManager:
         self.connection.commit()
         print(f"Данные успешно вставлены в таблицу '{table_name}'.")
 
-    def has_status_zero(self, table_name, timeframe):
+    def has_status_zero(self, table_name, timeframe, coin_name):
         """
         Проверяет, есть ли в таблице хотя бы одна запись с колонкой status = 0.
         Если найдена запись с status = 0, возвращает значения SL, TP и signal.
@@ -113,10 +113,10 @@ class DatabaseManager:
         query = f"""
             SELECT SL, TP, signal, open
             FROM {table_name} 
-            WHERE status = 1 AND timeframe = ? 
+            WHERE status = 1 AND timeframe = ? AND coin_name = ?
             LIMIT 1;
         """
-        self.cursor.execute(query, (timeframe,))
+        self.cursor.execute(query, (timeframe, coin_name))  # Передаем два параметра
         result = self.cursor.fetchone()
         if result:
             # Если запись найдена, возвращаем SL, TP и signal
@@ -126,7 +126,7 @@ class DatabaseManager:
             # Если запись не найдена, возвращаем None
             return False
 
-    def update_status_and_pnl(self, table_name, timeframe, pnl):
+    def update_status_and_pnl(self, table_name, timeframe, pnl, coin_name):
         """
         Обновляет статус на 0 и записывает значение pnl для всех записей с status = 1 и указанным timeframe.
         :param table_name: Имя таблицы для обновления.
@@ -146,13 +146,12 @@ class DatabaseManager:
                 f"ALTER TABLE {table_name} ADD COLUMN pnl REAL;")
             self.connection.commit()  # Фиксируем изменения в структуре таблицы
 
-        # Запрос на обновление статуса и добавление pnl
         update_query = f"""
             UPDATE {table_name} 
             SET status = 0, pnl = ? 
-            WHERE status = 1 AND timeframe = ?;
+            WHERE status = 1 AND timeframe = ? AND coin_name = ?;
         """
-        self.cursor.execute(update_query, (pnl, timeframe))
+        self.cursor.execute(update_query, (pnl, timeframe, coin_name))
         self.connection.commit()  # Фиксируем изменения в данных
 
         # Возвращаем количество обновленных строк
